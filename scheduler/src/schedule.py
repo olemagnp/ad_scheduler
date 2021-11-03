@@ -1,7 +1,9 @@
 from typing import Any, List, Union
 
-from .const import EntityKind, Days
 import datetime
+import json
+
+from .const import EntityKind, Days
 
 
 def dt_now() -> datetime.datetime:
@@ -26,12 +28,27 @@ class Entry:
 
         self.__next_datetime = None
 
+    @staticmethod
+    def from_dict(d):
+        return Entry(d["value"], d["hour"], d["minute"], d["days"])
+
     def same_time(self, other: "Entry"):
         return (
             self.hour == other.hour
             and self.minute == other.minute
             and self.days == other.days
         )
+
+    def as_dict(self):
+        return {
+            "value": self.value,
+            "hour": self.hour,
+            "minute": self.minute,
+            "days": self.days,
+        }
+
+    def json(self):
+        return json.dumps(self.as_dict())
 
     @property
     def next_datetime(self):
@@ -68,6 +85,22 @@ class Schedule:
         self.entries = []
         self.subscribers = []
         self.current_entry = None
+
+    def as_dict(self):
+        return {
+            "kind": self.kind,
+            "name": self.name,
+            "entries": [e.as_dict() for e in self.entries],
+        }
+
+    def json(self):
+        return json.dumps(self.as_dict())
+
+    @staticmethod
+    def from_dict(self, d):
+        sched = Schedule(d["name"], d["kind"])
+        for entry in d["entries"]:
+            sched.add_entry(Entry.from_dict(entry))
 
     def value_updated(self):
         for sub in self.subscribers:
