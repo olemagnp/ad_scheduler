@@ -128,10 +128,8 @@ def test_update_state_with_multiple_entries(mocker, schedule: Schedule):
     entries = [
         Entry(10, 10, 0, ["mon", "tue", "wed"]),
         Entry(20, 12, 0, ["wed", "thu"]),
-        Entry(30, 14, 0, ["sun", "tue"]),
+        Entry(30, 9, 0, ["sun", "tue"]),
     ]
-
-    print([e.next_datetime for e in entries])
 
     schedule.entries = entries
 

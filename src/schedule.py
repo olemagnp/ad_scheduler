@@ -65,6 +65,7 @@ class Entry:
             self.days = list(set(days))  # Remove duplicates
 
         self.__next_datetime = None
+        self.__prev_datetime = None
 
     def __str__(self):
         return f"Entry [hour={self.hour}, minute={self.minute}, value={self.value}, attrs={self.additional_attrs}, days={self.days}]"
@@ -105,6 +106,32 @@ class Entry:
                 hour=self.hour, minute=self.minute
             ) + datetime.timedelta(days=best_diff)
         return self.__next_datetime
+
+    @property
+    def previous_datetime(self):
+        now = dt_now()
+        cur_day = now.weekday()
+        diff = [cur_day - d for d in self.days]
+
+        if self.time < now.time():
+            targ = 0
+        else:
+            targ = 1
+
+        best_diff = float("inf")
+        for d in diff:
+            if d < targ:
+                d += 7
+            elif d == targ:
+                best_diff = d
+                break
+            if d < best_diff:
+                best_diff = d
+        self.__prev_datetime = now.replace(
+            hour=self.hour, minute=self.minute
+        ) + datetime.timedelta(days=-best_diff)
+
+        return self.__prev_datetime
 
 
 class Schedule:
@@ -181,7 +208,7 @@ class Schedule:
         tmp_entries = list(self.entries)
 
         self.next_entry = min(tmp_entries, key=lambda e: e.next_datetime - now)
-        self.current_entry = max(tmp_entries, key=lambda e: e.next_datetime - now)
+        self.current_entry = min(tmp_entries, key=lambda e: now - e.previous_datetime)
         self.next_trigger = self.scheduler.run_at(
             self.trigger, self.next_entry.next_datetime
         )
