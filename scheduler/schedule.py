@@ -173,6 +173,14 @@ class Schedule:
             self.scheduler.cancel_timer(self.next_trigger)
             self.next_trigger = None
 
+    def get_entry(self, hour, minute, days):
+        tmp_entry = Entry(0, hour, minute, days)
+
+        first = filter(lambda e: tmp_entry.same_time(e), self.entries)
+        if first:
+            return next(first)
+        return None
+
     def add_entry(self, entry: Entry):
         """Add a new trigger, update the state, and if the current entry has changed, update subscribers"""
         if any([e.same_time(entry) for e in self.entries]):

@@ -1,4 +1,4 @@
-from scheduler.src.entities import EntityGroup
+from .entities import EntityGroup
 from typing import Dict, Optional, TextIO, Iterable
 import json
 from .schedule import Schedule, Entry
@@ -10,13 +10,17 @@ logger = logging.getLogger(__name__)
 class ScheduleWriter:
     @classmethod
     def write_schedule(cls, fp: TextIO, schedule: Schedule):
-        d = {
+        d = cls.schedule_to_dict(schedule)
+
+        json.dump(d, fp)
+
+    @classmethod
+    def schedule_to_dict(cls, schedule):
+        return {
             "kind": schedule.kind,
             "name": schedule.name,
             "entries": [cls.entry_to_dict(e) for e in schedule.entries],
         }
-
-        json.dump(d, fp)
 
     @classmethod
     def entry_to_dict(cls, entry: Entry) -> Dict:
@@ -31,6 +35,7 @@ class ScheduleWriter:
     def entry_from_dict(cls, d: Dict) -> Entry:
         return Entry(d["value"], d["hour"], d["minute"], d["days"])
 
+    @classmethod
     def read_schedule(cls, fp: TextIO, scheduler) -> Schedule:
         d = json.load(fp)
         sched = Schedule(d["name"], d["kind"], scheduler)

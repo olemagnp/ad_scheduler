@@ -1,14 +1,19 @@
-from src.schedule import Entry
+from scheduler.schedule import Entry
 import pytest
 from pytest_mock import mocker
 
-from src.entities import EntityGroup
-from src.const import EntityKind
+from scheduler.entities import EntityGroup
+from scheduler.const import EntityKind
 
 
 @pytest.fixture
 def entry():
     return Entry(42, 10, 0, additional_attrs={"some_attr": "some_attr_value"})
+
+
+@pytest.fixture
+def scheduler(mocker):
+    return mocker.Mock()
 
 
 @pytest.fixture
@@ -29,8 +34,8 @@ def schedule(mocker, entry):
         ),
     ],
 )
-def test_initializer(name, kind, entities):
-    g = EntityGroup(name, kind, *entities)
+def test_initializer(name, kind, entities, scheduler):
+    g = EntityGroup(name, kind, scheduler, *entities)
 
     assert g.name == name, f"Name not set correctly, expected {name}, got {g.name}"
     assert g.kind == kind, f"Kind not set correctly, expected {kind}, got {g.kind}"
@@ -39,15 +44,15 @@ def test_initializer(name, kind, entities):
     ), f"Entities not set correctly, expected {set(entities)}, got {g.entities}"
 
 
-def test_initializer_illegal_kind_raises():
+def test_initializer_illegal_kind_raises(scheduler):
     with pytest.raises(ValueError):
-        EntityGroup("SomeName", "IncorrectGroupKind")
+        EntityGroup("SomeName", "IncorrectGroupKind", scheduler)
 
 
-def test_set_entity_calls_scheduler(schedule, entry):
+def test_set_entity_calls_scheduler(schedule, entry, scheduler):
     entity = "light.my_light"
 
-    eg = EntityGroup("SomeName", EntityKind.ON_OFF, entity)
+    eg = EntityGroup("SomeName", EntityKind.ON_OFF, entity, scheduler)
     eg.schedule = schedule
 
     eg.set_entity(entity, entry)
@@ -56,65 +61,31 @@ def test_set_entity_calls_scheduler(schedule, entry):
     )
 
 
-def test_add_entity_with_new_entity(mocker, schedule, entry):
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF)
+def test_set_entities(mocker, schedule, scheduler):
+    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, scheduler)
 
     mocker.patch.object(eg, "set_entity")
     eg.schedule = schedule
 
-    entity = "light.new_light"
+    entities = ["light.new_light", "light.other_light", "light.new_light"]
 
-    eg.add_entity(entity)
-    assert eg.entities == {entity}, "Entity not added to eg.entites"
-    eg.set_entity.assert_called_with(entity, entry)
+    eg.set_entities(entities)
 
-    entity_two = "light.another_new_light"
+    assert eg.entities == {"light.new_light", "light.other_light"}
+    assert eg.set_entity.call_count == 2
 
-    eg.add_entity(entity_two)
+    eg.set_entity.reset_mock()
 
-    assert eg.entities == {entity, entity_two}, "Entity two not added to eg.entities"
-    eg.set_entity.assert_called_with(entity_two, entry)
+    entities = ["light.other_light", "switch.something_new"]
+    eg.set_entities(entities)
 
-
-def test_add_entity_with_same_entity_does_nothing(mocker, schedule):
-    entity = "light.new_light"
-
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, entity)
-
-    mocker.patch.object(eg, "set_entity")
-    eg.schedule = schedule
-
-    eg.add_entity(entity)
-    assert eg.entities == {entity}, "Entity should not be added to eg.entities"
-    eg.set_entity.assert_not_called()
+    assert eg.entities == {"light.other_light", "switch.something_new"}
+    assert eg.set_entity.call_count == 2
 
 
-def test_remove_entity_existing():
-    entity1 = "light.new_light"
-    entity2 = "light.other_light"
-
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, entity1, entity2)
-
-    assert {entity1, entity2} == eg.entities
-
-    eg.remove_entity(entity1)
-
-    assert {entity2} == eg.entities
-
-    eg.remove_entity(entity2)
-    assert set() == eg.entities
-
-
-def test_remove_entity_non_existing():
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, "light.some_light")
-
-    with pytest.raises(KeyError):
-        eg.remove_entity("light.non_existing")
-
-
-def test_schedule_changed_sets_all_entities(mocker, entry):
+def test_schedule_changed_sets_all_entities(mocker, entry, scheduler):
     entities = ["light.light1", "light.light2", "light.light3", "light.light4"]
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, *entities)
+    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, scheduler, *entities)
 
     mocker.patch.object(eg, "set_entity")
 
@@ -125,9 +96,9 @@ def test_schedule_changed_sets_all_entities(mocker, entry):
     )
 
 
-def test_schedule_changed_inactive_does_nothing(mocker, entry):
+def test_schedule_changed_inactive_does_nothing(mocker, entry, scheduler):
     entities = ["light.light1", "light.light2", "light.light3", "light.light4"]
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, *entities)
+    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, scheduler, *entities)
     eg.active = False
 
     mocker.patch.object(eg, "set_entity")
@@ -136,9 +107,9 @@ def test_schedule_changed_inactive_does_nothing(mocker, entry):
     eg.set_entity.assert_not_called()
 
 
-def test_remove_schedule_also_removes_group_from_subscribers(schedule):
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF)
-    eg2 = EntityGroup("OtherGroup", EntityKind.ON_OFF)
+def test_remove_schedule_also_removes_group_from_subscribers(schedule, scheduler):
+    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, scheduler)
+    eg2 = EntityGroup("OtherGroup", EntityKind.ON_OFF, scheduler)
     schedule.subscribers = [eg, eg2]
     eg.schedule = schedule
 
@@ -150,16 +121,16 @@ def test_remove_schedule_also_removes_group_from_subscribers(schedule):
     ], "Group was not removed from schedules subscribers"
 
 
-def test_remove_schedule_without_schedule_does_nothing(schedule):
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF)
+def test_remove_schedule_without_schedule_does_nothing(scheduler):
+    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, scheduler)
 
     eg.remove_schedule()
 
     assert eg.schedule is None, "Schedule is not None"
 
 
-def test_assign_schedule_wrong_type_raises(schedule):
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF)
+def test_assign_schedule_wrong_type_raises(schedule, scheduler):
+    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, scheduler)
 
     schedule.kind = EntityKind.THERMO
     schedule.subscribers = []
@@ -171,8 +142,8 @@ def test_assign_schedule_wrong_type_raises(schedule):
     assert schedule.subscribers == []
 
 
-def test_assign_does_everything(mocker, schedule, entry):
-    eg = EntityGroup("MyGroup", EntityKind.ON_OFF)
+def test_assign_does_everything(mocker, schedule, entry, scheduler):
+    eg = EntityGroup("MyGroup", EntityKind.ON_OFF, scheduler)
 
     schedule.kind = EntityKind.ON_OFF
     schedule.subscribers = []

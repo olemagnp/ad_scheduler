@@ -1,4 +1,6 @@
-from typing import List, Set, Optional
+from typing import Iterable, Set, Optional, Union
+from datetime import datetime, timedelta
+
 from .schedule import Entry, Schedule
 from .const import EntityKind
 
@@ -14,7 +16,7 @@ class EntityGroup:
         schedule (Schedule): The schedule this group is currently assigned to
     """
 
-    def __init__(self, name: str, kind: str, *entities: str):
+    def __init__(self, name: str, kind: str, scheduler: "Scheduler", *entities: str):
         if kind not in EntityKind.__all__:
             raise ValueError(f"Illegal group kind: {kind}")
 
@@ -23,8 +25,10 @@ class EntityGroup:
         self.entities: Set[str] = set(entities)
         self.active: bool = True
         self.schedule: Optional[Schedule] = None
+        self.activation_timer = None
+        self.scheduler = scheduler
 
-    def add_entity(self, entity: str):
+    def set_entities(self, entities: Iterable[str]):
         """
         Add entity to this group.
 
@@ -33,21 +37,10 @@ class EntityGroup:
         Parameters:
             entity: The entity id to add
         """
-        if entity in self.entities:
-            return
-        self.entities.add(entity)
-
+        self.entities = set(entities)
         if self.active and self.schedule is not None:
-            self.set_entity(entity, self.schedule.current_entry)
-
-    def remove_entity(self, entity: str):
-        """
-        Remove entity from group
-
-        Parameters:
-            entity: The entity id of the entity to remove
-        """
-        self.entities.remove(entity)
+            for entity in self.entities:
+                self.set_entity(entity, self.schedule.current_entry)
 
     def schedule_changed(self, entry: Entry):
         """
@@ -102,3 +95,16 @@ class EntityGroup:
         self.schedule = schedule
         self.schedule.subscribers.append(self)
         self.schedule_changed(self.schedule.current_entry)
+
+    def deactivate_for(self, delay: Optional[Union[int, timedelta]] = None):
+        self.active = False
+
+        if delay is not None:
+            if isinstance(delay, timedelta):
+                delay = delay.total_seconds()
+            self.activation_timer = self.scheduler.run_in(self.activate, delay)
+
+    def activate(self, kwargs=None):
+        self.active = True
+        if self.schedule:
+            self.schedule_changed(self.schedule.current_entry)

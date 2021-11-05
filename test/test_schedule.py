@@ -1,8 +1,7 @@
 from datetime import datetime
-from src.const import EntityKind
-from src.entities import EntityGroup
-from src.schedule import Entry, Schedule
-import src.schedule
+from scheduler.const import EntityKind
+from scheduler.entities import EntityGroup
+from scheduler.schedule import Entry, Schedule
 import pytest
 from pytest_mock import mocker
 
@@ -122,7 +121,7 @@ def test_update_state_with_single_entry(schedule, entry):
 
 
 def test_update_state_with_multiple_entries(mocker, schedule: Schedule):
-    mock = mocker.patch("src.schedule.dt_now")
+    mock = mocker.patch("scheduler.schedule.dt_now")
     mock.return_value = datetime(2021, 11, 1, 9, 0)  # Monday 9:00
     # TODO Need to find previous datetime instead of max next-datetime
     entries = [
