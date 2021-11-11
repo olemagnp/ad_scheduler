@@ -222,8 +222,8 @@ class Scheduler(hass.Hass):
 
     def add_schedule(self, request: Dict):
         name = request["name"]
-        if name not in self.groups:
-            return f"Schedule not found: {name}", 403
+        if name in self.groups:
+            return f"Schedule already exists: {name}", 403
 
         sched = Schedule(name, request["kind"], self)
         self.schedules[name] = sched
