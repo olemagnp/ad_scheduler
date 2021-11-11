@@ -43,7 +43,7 @@ class ScheduleWriter:
         sched = Schedule(d["name"], d["kind"], scheduler)
 
         for e in d["entries"]:
-            sched.add_entry(cls.entry_to_dict(e))
+            sched.add_entry(cls.entry_from_dict(e))
         return sched
 
 
