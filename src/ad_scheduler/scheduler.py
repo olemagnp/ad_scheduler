@@ -67,6 +67,8 @@ class Scheduler(hass.Hass):
         self.register_endpoint(self.edit_entry, build_endpoint("entries", "edit"))
         self.register_endpoint(self.remove_entry, build_endpoint("entries", "delete"))
 
+        self.set_own_state()
+
     def set_own_state(self):
         state = {}
 
@@ -123,6 +125,7 @@ class Scheduler(hass.Hass):
         eg = EntityGroup(request["name"], request["kind"], *request.get("entities", []))
         self.groups[name] = eg
         self.store_groups()
+        self.set_own_state()
         return "", 200
 
     def edit_entity_group(self, request: Dict, kwargs: Dict):
@@ -146,6 +149,7 @@ class Scheduler(hass.Hass):
             group.set_entities(request["entities"])
 
         self.store_groups()
+        self.set_own_state()
         return "", 200
 
     def remove_entity_group(self, request: Dict, kwargs: Dict):
@@ -158,6 +162,9 @@ class Scheduler(hass.Hass):
 
         del request[name]
 
+        self.store_groups()
+        self.set_own_state()
+
         return "", 200
 
     def activate_group(self, request: Dict, kwargs: Dict):
@@ -166,6 +173,10 @@ class Scheduler(hass.Hass):
             return f"Group not found: {name}", 403
 
         self.groups[name].activate()
+
+        self.store_groups()
+        self.set_own_state()
+
         return "", 200
 
     def deactivate_group(self, request: Dict, kwargs: Dict):
@@ -177,6 +188,11 @@ class Scheduler(hass.Hass):
 
         group.deactivate_for(request.get("delay", None))
 
+        self.store_groups()
+        self.set_own_state()
+
+        return "", 200
+
     def assign_schedule(self, request: Dict, kwargs: Dict):
         groupname = request["group"]
         schedulename = request["schedule"]
@@ -186,12 +202,17 @@ class Scheduler(hass.Hass):
 
         if schedulename == "":
             self.groups[groupname].remove_schedule()
+            self.store_groups()
+            self.set_own_state()
             return "", 200
 
         if schedulename not in self.groups:
             return f"Schedule not found: {schedulename}", 403
 
         self.groups[groupname].assign_schedule(self.schedules[schedulename])
+
+        self.store_groups()
+        self.set_own_state()
 
         return "", 200
 
@@ -204,7 +225,13 @@ class Scheduler(hass.Hass):
         self.schedules[name] = sched
 
         self.store_schedule(sched)
+        self.set_own_state()
+
+        sched.subscribers.append(self)
         return "", 200
+
+    def schedule_changed(self, entry: Entry):
+        self.set_own_state()
 
     def edit_schedule(self, request: Dict, kwargs: Dict):
         name = request["name"]
@@ -226,6 +253,7 @@ class Scheduler(hass.Hass):
         schedule.kind = request.get("kind", schedule.kind)
 
         self.store_schedule(schedule)
+        self.set_own_state()
         return "", 200
 
     def remove_schedule(self, request: Dict, kwargs: Dict):
@@ -235,6 +263,8 @@ class Scheduler(hass.Hass):
 
         del self.schedules[name]
         self.root.joinpath("schedules", f"{name}.json").unlink(missing_ok=True)
+
+        self.set_own_state()
 
     def add_entry(self, request: Dict, kwargs: Dict):
         schedulename = request["schedule"]
@@ -256,6 +286,8 @@ class Scheduler(hass.Hass):
         except ValueError:
             return "Entry collides with existing entry", 403
 
+        self.store_schedule(schedule)
+        self.set_own_state()
         return "", 200
 
     def edit_entry(self, request: Dict, kwargs: Dict):
@@ -283,6 +315,9 @@ class Scheduler(hass.Hass):
         schedule.entries.remove(entry)
         schedule.add_entry(new_entry)
 
+        self.store_schedule(schedule)
+        self.set_own_state()
+
         return "", 200
 
     def remove_entry(self, request: Dict, kwargs: Dict):
@@ -301,5 +336,8 @@ class Scheduler(hass.Hass):
 
         schedule.entries.remove(entry)
         schedule.trigger()
+
+        self.store_schedule(schedule)
+        self.set_own_state()
 
         return "", 200
