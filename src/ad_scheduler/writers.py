@@ -1,6 +1,5 @@
 from json.decoder import JSONDecodeError
 
-from ad_scheduler.scheduler import Scheduler
 from .entities import EntityGroup
 from typing import Dict, Optional, TextIO, Iterable
 import json
@@ -71,7 +70,7 @@ class GroupsWriter:
     def read_groups(
         cls,
         fp: TextIO,
-        scheduler: Scheduler,
+        scheduler,
         schedules: Optional[Dict[str, Schedule]] = None,
     ):
 
