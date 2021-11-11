@@ -251,7 +251,9 @@ class Scheduler(hass.Hass):
             del self.schedules[name]
             self.schedules[new_name].name = new_name
 
-            self.root.joinpath("schedules", f"{name}.json").unlink(missing_ok=True)
+            p = self.root.joinpath("schedules", f"{name}.json")
+            if p.exists():
+                p.unlink()
             name = new_name
 
         schedule = self.schedules[name]
