@@ -72,7 +72,7 @@ class GroupsWriter:
             data = json.load(fp)
         except JSONDecodeError as e:
             logger.warning("Failed to read groups from file:", e)
-            return []
+            return [], []
         groups = []
         schedule_names = []
         for g in data:
