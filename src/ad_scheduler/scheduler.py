@@ -126,7 +126,7 @@ class Scheduler(hass.Hass):
         self.groups[name] = eg
         self.store_groups()
         self.set_own_state()
-        return "", 200
+        return GroupsWriter.group_to_dict(eg), 200
 
     def edit_entity_group(self, request: Dict):
         name = request["name"]
@@ -150,7 +150,7 @@ class Scheduler(hass.Hass):
 
         self.store_groups()
         self.set_own_state()
-        return "", 200
+        return GroupsWriter.group_to_dict(group), 200
 
     def remove_entity_group(self, request: Dict):
         name = request["name"]
@@ -165,7 +165,7 @@ class Scheduler(hass.Hass):
         self.store_groups()
         self.set_own_state()
 
-        return "", 200
+        return f"Group {name} removed", 200
 
     def activate_group(self, request: Dict):
         name = request["name"]
@@ -177,7 +177,7 @@ class Scheduler(hass.Hass):
         self.store_groups()
         self.set_own_state()
 
-        return "", 200
+        return GroupsWriter.group_to_dict(self.groups[name]), 200
 
     def deactivate_group(self, request: Dict):
         name = request["name"]
@@ -191,7 +191,7 @@ class Scheduler(hass.Hass):
         self.store_groups()
         self.set_own_state()
 
-        return "", 200
+        return GroupsWriter.group_to_dict(group), 200, 200
 
     def assign_schedule(self, request: Dict):
         groupname = request["group"]
