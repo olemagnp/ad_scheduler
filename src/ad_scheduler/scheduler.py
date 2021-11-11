@@ -125,8 +125,7 @@ class Scheduler(hass.Hass):
             return f"Group with name {name} already exists", 403
 
         entities = request.get("entities", [])
-        print("Receivd entities: entities")
-        eg = EntityGroup(request["name"], request["kind"], *entities)
+        eg = EntityGroup(request["name"], request["kind"], self, *entities)
         self.groups[name] = eg
         self.store_groups()
         self.set_own_state()
