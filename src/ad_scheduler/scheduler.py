@@ -222,7 +222,7 @@ class Scheduler(hass.Hass):
 
     def add_schedule(self, request: Dict):
         name = request["name"]
-        if name in self.groups:
+        if name in self.schedules:
             return f"Schedule already exists: {name}", 403
 
         sched = Schedule(name, request["kind"], self)
@@ -239,7 +239,7 @@ class Scheduler(hass.Hass):
 
     def edit_schedule(self, request: Dict):
         name = request["name"]
-        if name not in self.groups:
+        if name not in self.schedules:
             return f"Schedule not found: {name}", 403
 
         if "new_name" in request:
@@ -263,7 +263,7 @@ class Scheduler(hass.Hass):
 
     def remove_schedule(self, request: Dict):
         name = request["name"]
-        if name not in self.groups:
+        if name not in self.schedules:
             return f"Schedule not found: {name}", 403
 
         del self.schedules[name]
@@ -275,7 +275,7 @@ class Scheduler(hass.Hass):
     def add_entry(self, request: Dict):
         schedulename = request["schedule"]
 
-        if schedulename not in self.groups:
+        if schedulename not in self.schedules:
             return f"Schedule not found: {schedulename}", 403
         schedule = self.schedules[schedulename]
 
@@ -299,7 +299,7 @@ class Scheduler(hass.Hass):
     def edit_entry(self, request: Dict):
         schedulename = request["schedule"]
 
-        if schedulename not in self.groups:
+        if schedulename not in self.schedules:
             return f"Schedule not found: {schedulename}", 403
         schedule = self.schedules[schedulename]
 
@@ -329,7 +329,7 @@ class Scheduler(hass.Hass):
     def remove_entry(self, request: Dict):
         schedulename = request["schedule"]
 
-        if schedulename not in self.groups:
+        if schedulename not in self.schedules:
             return f"Schedule not found: {schedulename}", 403
         schedule = self.schedules[schedulename]
 
