@@ -232,7 +232,7 @@ class Scheduler(hass.Hass):
         self.set_own_state()
 
         sched.subscribers.append(self)
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(sched), 200
 
     def schedule_changed(self, entry: Entry):
         self.set_own_state()
@@ -249,6 +249,7 @@ class Scheduler(hass.Hass):
 
             self.schedules[new_name] = self.schedules[name]
             del self.schedules[name]
+            self.schedules[new_name].name = new_name
 
             self.root.joinpath("schedules", f"{name}.json").unlink(missing_ok=True)
             name = new_name
@@ -258,7 +259,7 @@ class Scheduler(hass.Hass):
 
         self.store_schedule(schedule)
         self.set_own_state()
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(schedule), 200
 
     def remove_schedule(self, request: Dict):
         name = request["name"]
@@ -269,6 +270,7 @@ class Scheduler(hass.Hass):
         self.root.joinpath("schedules", f"{name}.json").unlink(missing_ok=True)
 
         self.set_own_state()
+        return {"msg": f"Schedule {name} removed"}, 200
 
     def add_entry(self, request: Dict):
         schedulename = request["schedule"]
@@ -292,7 +294,7 @@ class Scheduler(hass.Hass):
 
         self.store_schedule(schedule)
         self.set_own_state()
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(schedule), 200
 
     def edit_entry(self, request: Dict):
         schedulename = request["schedule"]
@@ -322,7 +324,7 @@ class Scheduler(hass.Hass):
         self.store_schedule(schedule)
         self.set_own_state()
 
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(schedule), 200
 
     def remove_entry(self, request: Dict):
         schedulename = request["schedule"]
@@ -344,4 +346,4 @@ class Scheduler(hass.Hass):
         self.store_schedule(schedule)
         self.set_own_state()
 
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(schedule), 200
