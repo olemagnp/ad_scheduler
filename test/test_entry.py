@@ -1,7 +1,8 @@
 import pytest
 from pytest_mock import mocker
-import scheduler.schedule
 import datetime
+
+import ad_scheduler.schedule
 
 
 @pytest.mark.parametrize(
@@ -14,10 +15,10 @@ import datetime
     ],
 )
 def test_next_datetime_is_today(mocker, dt):
-    mocker.patch("scheduler.schedule.dt_now")
-    scheduler.schedule.dt_now.return_value = dt
+    mocker.patch("ad_scheduler.schedule.dt_now")
+    ad_scheduler.schedule.dt_now.return_value = dt
 
-    entry = scheduler.schedule.Entry(0, 23, 59)
+    entry = ad_scheduler.schedule.Entry(0, 23, 59)
     exp = dt.replace(hour=23, minute=59)
 
     actual = entry.next_datetime
@@ -35,10 +36,10 @@ def test_next_datetime_is_today(mocker, dt):
     ],
 )
 def test_prev_datetime_is_today(mocker, dt):
-    mocker.patch("scheduler.schedule.dt_now")
-    scheduler.schedule.dt_now.return_value = dt
+    mocker.patch("ad_scheduler.schedule.dt_now")
+    ad_scheduler.schedule.dt_now.return_value = dt
 
-    entry = scheduler.schedule.Entry(0, 0, 0)
+    entry = ad_scheduler.schedule.Entry(0, 0, 0)
     exp = dt.replace(hour=0, minute=0)
     actual = entry.previous_datetime
 
@@ -50,38 +51,38 @@ def test_prev_datetime_is_today(mocker, dt):
     [
         (
             datetime.datetime(2021, 11, 1, 12, 0),
-            scheduler.schedule.Entry(0, 10, 0, ["tue"]),
+            ad_scheduler.schedule.Entry(0, 10, 0, ["tue"]),
             datetime.datetime(2021, 11, 2, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 1, 12, 0),
-            scheduler.schedule.Entry(0, 10, 0, "daily"),
+            ad_scheduler.schedule.Entry(0, 10, 0, "daily"),
             datetime.datetime(2021, 11, 2, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 1, 12, 0),
-            scheduler.schedule.Entry(0, 10, 0, ["thu"]),
+            ad_scheduler.schedule.Entry(0, 10, 0, ["thu"]),
             datetime.datetime(2021, 11, 4, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 3, 12, 0),
-            scheduler.schedule.Entry(0, 10, 0, ["mon"]),
+            ad_scheduler.schedule.Entry(0, 10, 0, ["mon"]),
             datetime.datetime(2021, 11, 8, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 3, 12, 00),
-            scheduler.schedule.Entry(0, 10, 0, ["wed", "fri", "mon", "tue"]),
+            ad_scheduler.schedule.Entry(0, 10, 0, ["wed", "fri", "mon", "tue"]),
             datetime.datetime(2021, 11, 5, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 3, 12, 00),
-            scheduler.schedule.Entry(0, 13, 0, ["tue", "mon"]),
+            ad_scheduler.schedule.Entry(0, 13, 0, ["tue", "mon"]),
             datetime.datetime(2021, 11, 8, 13, 0),
         ),
     ],
 )
 def test_initial_next_datetime(mocker, now, entry, exp):
-    mocker.patch("scheduler.schedule.dt_now").return_value = now
+    mocker.patch("ad_scheduler.schedule.dt_now").return_value = now
 
     actual = entry.next_datetime
 
@@ -93,38 +94,38 @@ def test_initial_next_datetime(mocker, now, entry, exp):
     [
         (
             datetime.datetime(2021, 11, 1, 12, 0),
-            scheduler.schedule.Entry(0, 10, 0, ["tue"]),
+            ad_scheduler.schedule.Entry(0, 10, 0, ["tue"]),
             datetime.datetime(2021, 10, 26, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 3, 12, 0),
-            scheduler.schedule.Entry(0, 10, 0, "daily"),
+            ad_scheduler.schedule.Entry(0, 10, 0, "daily"),
             datetime.datetime(2021, 11, 3, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 8, 12, 0),
-            scheduler.schedule.Entry(0, 10, 0, ["thu"]),
+            ad_scheduler.schedule.Entry(0, 10, 0, ["thu"]),
             datetime.datetime(2021, 11, 4, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 3, 12, 0),
-            scheduler.schedule.Entry(0, 10, 0, ["mon"]),
+            ad_scheduler.schedule.Entry(0, 10, 0, ["mon"]),
             datetime.datetime(2021, 11, 1, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 3, 9, 00),
-            scheduler.schedule.Entry(0, 10, 0, ["wed", "fri", "mon", "tue"]),
+            ad_scheduler.schedule.Entry(0, 10, 0, ["wed", "fri", "mon", "tue"]),
             datetime.datetime(2021, 11, 2, 10, 0),
         ),
         (
             datetime.datetime(2021, 11, 2, 12, 00),
-            scheduler.schedule.Entry(0, 13, 0, ["tue", "mon"]),
+            ad_scheduler.schedule.Entry(0, 13, 0, ["tue", "mon"]),
             datetime.datetime(2021, 11, 1, 13, 0),
         ),
     ],
 )
 def test_initial_prev_datetime(mocker, now, entry, exp):
-    mocker.patch("scheduler.schedule.dt_now").return_value = now
+    mocker.patch("ad_scheduler.schedule.dt_now").return_value = now
 
     actual = entry.previous_datetime
 
@@ -132,11 +133,11 @@ def test_initial_prev_datetime(mocker, now, entry, exp):
 
 
 def test_next_datetime_changes(mocker):
-    mock = mocker.patch("scheduler.schedule.dt_now")
+    mock = mocker.patch("ad_scheduler.schedule.dt_now")
 
     mock.return_value = datetime.datetime(2021, 11, 1, 12, 0)
 
-    entry = scheduler.schedule.Entry(0, 10, 0, ["mon", "tue", "thu"])
+    entry = ad_scheduler.schedule.Entry(0, 10, 0, ["mon", "tue", "thu"])
 
     exp = datetime.datetime(2021, 11, 2, 10, 0)
     actual = entry.next_datetime

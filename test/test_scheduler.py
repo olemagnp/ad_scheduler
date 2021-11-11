@@ -1,6 +1,6 @@
 import pytest
 
-from scheduler.scheduler import Scheduler
+from ad_scheduler.scheduler import Scheduler
 
 
 @pytest.fixture

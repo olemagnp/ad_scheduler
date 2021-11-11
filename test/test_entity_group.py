@@ -1,9 +1,9 @@
-from scheduler.schedule import Entry
 import pytest
 from pytest_mock import mocker
 
-from scheduler.entities import EntityGroup
-from scheduler.const import EntityKind
+from ad_scheduler.schedule import Entry
+from ad_scheduler.entities import EntityGroup
+from ad_scheduler.const import EntityKind
 
 
 @pytest.fixture

@@ -1,5 +1,5 @@
-from scheduler.schedule import Entry, Schedule
-from scheduler.entities import EntityGroup
+from .schedule import Entry, Schedule
+from .entities import EntityGroup
 from typing import Dict
 
 import appdaemon.plugins.hass.hassapi as hass
