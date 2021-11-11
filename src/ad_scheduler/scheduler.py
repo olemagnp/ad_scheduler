@@ -195,7 +195,7 @@ class Scheduler(hass.Hass):
         self.store_groups()
         self.set_own_state()
 
-        return GroupsWriter.group_to_dict(group), 200, 200
+        return GroupsWriter.group_to_dict(group), 200
 
     def assign_schedule(self, request: Dict):
         groupname = request["group"]
