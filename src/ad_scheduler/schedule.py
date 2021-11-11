@@ -40,7 +40,7 @@ class Entry:
     ):
         """Sets the fields of the entry, as well as validating the given days"""
         self.value = value
-        self.additional_attrs = additional_attrs
+        self.additional_attrs = additional_attrs if additional_attrs is not None else {}
 
         self.hour = hour
         self.minute = minute
