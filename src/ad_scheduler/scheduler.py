@@ -213,7 +213,7 @@ class Scheduler(hass.Hass):
             self.set_own_state()
             return "", 200
 
-        if schedulename not in self.groups:
+        if schedulename not in self.schedules:
             return f"Schedule not found: {schedulename}", 403
 
         self.groups[groupname].assign_schedule(self.schedules[schedulename])
