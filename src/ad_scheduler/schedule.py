@@ -5,9 +5,11 @@ import json
 
 from .const import EntityKind, Days
 
+dt_getter = None
+
 
 def dt_now() -> datetime.datetime:
-    return datetime.datetime.now()
+    return datetime.datetime.now() if dt_getter is None else dt_getter.get_now()
 
 
 class Entry:

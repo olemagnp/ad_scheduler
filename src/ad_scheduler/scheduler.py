@@ -1,5 +1,6 @@
 from .schedule import Entry, Schedule
 from .entities import EntityGroup
+import ad_scheduler.schedule
 from typing import Dict
 
 import appdaemon.plugins.hass.hassapi as hass
@@ -11,6 +12,8 @@ from .writers import GroupsWriter, ScheduleWriter
 
 class Scheduler(hass.Hass):
     def initialize(self):
+        ad_scheduler.schedule.dt_getter = self
+
         self.root: Path = Path(self.args["root_dir"])
         self.root.mkdir(parents=True, exist_ok=True)
 
