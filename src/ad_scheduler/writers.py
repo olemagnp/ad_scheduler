@@ -1,3 +1,4 @@
+from json.decoder import JSONDecodeError
 from .entities import EntityGroup
 from typing import Dict, Optional, TextIO, Iterable
 import json
@@ -67,7 +68,11 @@ class GroupsWriter:
     @classmethod
     def read_groups(cls, fp: TextIO, schedules: Optional[Dict[str, Schedule]] = None):
 
-        data = json.load(fp)
+        try:
+            data = json.load(fp)
+        except JSONDecodeError as e:
+            logger.warning("Failed to read groups from file:", e)
+            return []
         groups = []
         schedule_names = []
         for g in data:
