@@ -142,6 +142,7 @@ class Scheduler(hass.Hass):
                 return f"Group with name {new_name} already exists", 403
 
             self.groups[new_name] = self.groups[name]
+            self.groups[new_name].name = new_name
             del self.groups[name]
             name = new_name
 
