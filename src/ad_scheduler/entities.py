@@ -22,7 +22,8 @@ class EntityGroup:
 
         self.name = name
         self.kind: str = kind
-        self.entities: Set[str] = set(entities)
+        self.entities: Set[str] = {*entities}
+        print(self.entities)
         self.active: bool = True
         self.schedule: Optional[Schedule] = None
         self.activation_timer = None
