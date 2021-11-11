@@ -269,7 +269,9 @@ class Scheduler(hass.Hass):
             return f"Schedule not found: {name}", 403
 
         del self.schedules[name]
-        self.root.joinpath("schedules", f"{name}.json").unlink(missing_ok=True)
+        p = self.root.joinpath("schedules", f"{name}.json")
+        if p.exists():
+            p.unlink()
 
         self.set_own_state()
         return {"msg": f"Schedule {name} removed"}, 200
