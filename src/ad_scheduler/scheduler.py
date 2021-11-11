@@ -164,12 +164,12 @@ class Scheduler(hass.Hass):
         group = self.groups[name]
         group.remove_schedule()
 
-        del request[name]
+        del self.groups[name]
 
         self.store_groups()
         self.set_own_state()
 
-        return f"Group {name} removed", 200
+        return {"msg": f"Group {name} removed"}, 200
 
     def activate_group(self, request: Dict):
         name = request["name"]
