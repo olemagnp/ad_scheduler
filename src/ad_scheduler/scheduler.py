@@ -11,7 +11,7 @@ from .writers import GroupsWriter, ScheduleWriter
 
 class Scheduler(hass.Hass):
     def initialize(self):
-        self.root: Path = Path(self.config["root_dir"])
+        self.root: Path = Path(self.args["root_dir"])
         self.root.mkdir(parents=True, exist_ok=True)
 
         # Read all existing schedules
