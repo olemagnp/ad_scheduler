@@ -58,7 +58,9 @@ class GroupsWriter:
             "name": group.name,
             "kind": group.kind,
             "active": group.active,
-            "schedule_name": group.schedule.name,
+            "schedule_name": group.schedule.name
+            if group.schedule is not None
+            else None,
             "entities": list(group.entities),
         }
 
