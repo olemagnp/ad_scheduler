@@ -37,7 +37,9 @@ class Scheduler(hass.Hass):
         group_path = self.root.joinpath("groups.json")
         if group_path.exists():
             with open(group_path, "r") as f:
-                groups, schedule_names = GroupsWriter.read_groups(f, self.schedules)
+                groups, schedule_names = GroupsWriter.read_groups(
+                    f, self, self.schedules
+                )
 
                 self.groups = {g.name: g for g in groups}
 

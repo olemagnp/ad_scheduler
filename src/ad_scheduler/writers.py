@@ -1,4 +1,6 @@
 from json.decoder import JSONDecodeError
+
+from ad_scheduler.scheduler import Scheduler
 from .entities import EntityGroup
 from typing import Dict, Optional, TextIO, Iterable
 import json
@@ -66,7 +68,12 @@ class GroupsWriter:
         }
 
     @classmethod
-    def read_groups(cls, fp: TextIO, schedules: Optional[Dict[str, Schedule]] = None):
+    def read_groups(
+        cls,
+        fp: TextIO,
+        scheduler: Scheduler,
+        schedules: Optional[Dict[str, Schedule]] = None,
+    ):
 
         try:
             data = json.load(fp)
@@ -76,7 +83,7 @@ class GroupsWriter:
         groups = []
         schedule_names = []
         for g in data:
-            group = EntityGroup(g["name"], g["kind"], *g["entities"])
+            group = EntityGroup(g["name"], g["kind"], scheduler, *g["entities"])
             groups.append(group)
             sched = g["schedule_name"]
             schedule_names.append(sched)
