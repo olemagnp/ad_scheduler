@@ -44,6 +44,8 @@ class Scheduler(hass.Hass):
         def build_endpoint(*parts):
             return str(PurePosixPath(self.name).joinpath(*parts))
 
+        print("\n" * 10 + "ENDPOINT: " + build_endpoint("groups", "add") + "\n" * 10)
+
         self.register_endpoint(self.add_entity_group, build_endpoint("groups", "add"))
         self.register_endpoint(self.edit_entity_group, build_endpoint("groups", "edit"))
         self.register_endpoint(
