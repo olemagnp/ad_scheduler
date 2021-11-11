@@ -42,7 +42,7 @@ class Scheduler(hass.Hass):
                 self.groups = {g.name: g for g in groups}
 
         def build_endpoint(*parts):
-            return str(PurePosixPath(self.name).joinpath(*parts))
+            return "_".join([self.name, *parts])
 
         print("\n" * 10 + "ENDPOINT: " + build_endpoint("groups", "add") + "\n" * 10)
 
