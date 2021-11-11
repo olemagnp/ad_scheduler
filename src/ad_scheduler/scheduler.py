@@ -44,8 +44,6 @@ class Scheduler(hass.Hass):
         def build_endpoint(*parts):
             return "_".join([self.name, *parts])
 
-        print("\n" * 10 + "ENDPOINT: " + build_endpoint("groups", "add") + "\n" * 10)
-
         self.register_endpoint(self.add_entity_group, build_endpoint("groups", "add"))
         self.register_endpoint(self.edit_entity_group, build_endpoint("groups", "edit"))
         self.register_endpoint(
@@ -119,7 +117,7 @@ class Scheduler(hass.Hass):
         with open(self.root.joinpath("schedules", f"{schedule.name}.json"), "w") as f:
             ScheduleWriter.write_schedule(f, schedule)
 
-    def add_entity_group(self, request: Dict, kwargs: Dict):
+    def add_entity_group(self, request: Dict):
         name = request["name"]
         if name in self.groups:
             return f"Group with name {name} already exists", 403
@@ -130,7 +128,7 @@ class Scheduler(hass.Hass):
         self.set_own_state()
         return "", 200
 
-    def edit_entity_group(self, request: Dict, kwargs: Dict):
+    def edit_entity_group(self, request: Dict):
         name = request["name"]
         if name not in self.groups:
             return f"Group not found: {name}", 403
@@ -154,7 +152,7 @@ class Scheduler(hass.Hass):
         self.set_own_state()
         return "", 200
 
-    def remove_entity_group(self, request: Dict, kwargs: Dict):
+    def remove_entity_group(self, request: Dict):
         name = request["name"]
         if name not in self.groups:
             return f"Group not found: {name}", 403
@@ -169,7 +167,7 @@ class Scheduler(hass.Hass):
 
         return "", 200
 
-    def activate_group(self, request: Dict, kwargs: Dict):
+    def activate_group(self, request: Dict):
         name = request["name"]
         if name not in self.groups:
             return f"Group not found: {name}", 403
@@ -181,7 +179,7 @@ class Scheduler(hass.Hass):
 
         return "", 200
 
-    def deactivate_group(self, request: Dict, kwargs: Dict):
+    def deactivate_group(self, request: Dict):
         name = request["name"]
         if name not in self.groups:
             return f"Group not found: {name}", 403
@@ -195,7 +193,7 @@ class Scheduler(hass.Hass):
 
         return "", 200
 
-    def assign_schedule(self, request: Dict, kwargs: Dict):
+    def assign_schedule(self, request: Dict):
         groupname = request["group"]
         schedulename = request["schedule"]
 
@@ -218,7 +216,7 @@ class Scheduler(hass.Hass):
 
         return "", 200
 
-    def add_schedule(self, request: Dict, kwargs: Dict):
+    def add_schedule(self, request: Dict):
         name = request["name"]
         if name not in self.groups:
             return f"Schedule not found: {name}", 403
@@ -235,7 +233,7 @@ class Scheduler(hass.Hass):
     def schedule_changed(self, entry: Entry):
         self.set_own_state()
 
-    def edit_schedule(self, request: Dict, kwargs: Dict):
+    def edit_schedule(self, request: Dict):
         name = request["name"]
         if name not in self.groups:
             return f"Schedule not found: {name}", 403
@@ -258,7 +256,7 @@ class Scheduler(hass.Hass):
         self.set_own_state()
         return "", 200
 
-    def remove_schedule(self, request: Dict, kwargs: Dict):
+    def remove_schedule(self, request: Dict):
         name = request["name"]
         if name not in self.groups:
             return f"Schedule not found: {name}", 403
@@ -268,7 +266,7 @@ class Scheduler(hass.Hass):
 
         self.set_own_state()
 
-    def add_entry(self, request: Dict, kwargs: Dict):
+    def add_entry(self, request: Dict):
         schedulename = request["schedule"]
 
         if schedulename not in self.groups:
@@ -292,7 +290,7 @@ class Scheduler(hass.Hass):
         self.set_own_state()
         return "", 200
 
-    def edit_entry(self, request: Dict, kwargs: Dict):
+    def edit_entry(self, request: Dict):
         schedulename = request["schedule"]
 
         if schedulename not in self.groups:
@@ -322,7 +320,7 @@ class Scheduler(hass.Hass):
 
         return "", 200
 
-    def remove_entry(self, request: Dict, kwargs: Dict):
+    def remove_entry(self, request: Dict):
         schedulename = request["schedule"]
 
         if schedulename not in self.groups:
