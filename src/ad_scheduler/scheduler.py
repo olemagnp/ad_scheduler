@@ -293,8 +293,8 @@ class Scheduler(hass.Hass):
 
         try:
             schedule.add_entry(entry)
-        except ValueError:
-            return "Entry collides with existing entry", 403
+        except ValueError as e:
+            return {"msg": str(e)}, 403
 
         self.store_schedule(schedule)
         self.set_own_state()
