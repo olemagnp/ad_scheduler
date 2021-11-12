@@ -225,6 +225,6 @@ class Schedule:
 
     def trigger(self, kwargs):
         """Trigger callback"""
-        self.scheduler.info(f"Schedule {self.name} triggered!")
+        self.scheduler.log(f"Schedule {self.name} triggered!", level="INFO")
         self.update_state()
         self.set_subscribers(self.current_entry)
