@@ -82,7 +82,7 @@ class Entry:
     def same_time(self, other: "Entry"):
         """Check if two entries trigger at the same time"""
         return (
-            self.hour == other.hourcall_service
+            self.hour == other.hour
             and self.minute == other.minute
             and any([d in other.days for d in self.days])
         )
