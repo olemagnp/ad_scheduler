@@ -1,11 +1,8 @@
 from typing import Any, Dict, List, Optional, Union
 
 import datetime
-import logging
 
 from .const import EntityKind, Days
-
-logger = logging.getLogger(__name__)
 
 dt_getter = None
 
@@ -228,6 +225,6 @@ class Schedule:
 
     def trigger(self, kwargs):
         """Trigger callback"""
-        logger.info("Schedule triggered!")
+        self.scheduler.info(f"Schedule {self.name} triggered!")
         self.update_state()
         self.set_subscribers(self.current_entry)
