@@ -174,7 +174,8 @@ class Schedule:
     def cancel(self):
         """Cancel the current trigger if it is set"""
         if self.next_trigger is not None:
-            self.scheduler.cancel_timer(self.next_trigger)
+            if self.scheduler.timer_running(self.next_trigger):
+                self.scheduler.cancel_timer(self.next_trigger)
             self.next_trigger = None
 
     def get_entry(self, hour, minute, days):
