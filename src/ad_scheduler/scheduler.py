@@ -1,5 +1,6 @@
 from .schedule import Entry, Schedule
 from .entities import EntityGroup
+import ad_scheduler.schedule
 from typing import Dict
 
 import appdaemon.plugins.hass.hassapi as hass
@@ -11,6 +12,8 @@ from .writers import GroupsWriter, ScheduleWriter
 
 class Scheduler(hass.Hass):
     def initialize(self):
+        ad_scheduler.schedule.dt_getter = self
+
         self.root: Path = Path(self.args["root_dir"])
         self.root.mkdir(parents=True, exist_ok=True)
 
@@ -27,6 +30,7 @@ class Scheduler(hass.Hass):
                         raise ValueError(
                             f"Schedule with duplicate name found: {sched.name}"
                         )
+                    sched.subscribers.append(self)
                     self.schedules[sched.name] = sched
         else:
             schedule_dir.mkdir()
@@ -210,7 +214,7 @@ class Scheduler(hass.Hass):
             self.set_own_state()
             return "", 200
 
-        if schedulename not in self.groups:
+        if schedulename not in self.schedules:
             return f"Schedule not found: {schedulename}", 403
 
         self.groups[groupname].assign_schedule(self.schedules[schedulename])
@@ -222,8 +226,8 @@ class Scheduler(hass.Hass):
 
     def add_schedule(self, request: Dict):
         name = request["name"]
-        if name not in self.groups:
-            return f"Schedule not found: {name}", 403
+        if name in self.schedules:
+            return f"Schedule already exists: {name}", 403
 
         sched = Schedule(name, request["kind"], self)
         self.schedules[name] = sched
@@ -232,14 +236,14 @@ class Scheduler(hass.Hass):
         self.set_own_state()
 
         sched.subscribers.append(self)
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(sched), 200
 
     def schedule_changed(self, entry: Entry):
         self.set_own_state()
 
     def edit_schedule(self, request: Dict):
         name = request["name"]
-        if name not in self.groups:
+        if name not in self.schedules:
             return f"Schedule not found: {name}", 403
 
         if "new_name" in request:
@@ -249,8 +253,11 @@ class Scheduler(hass.Hass):
 
             self.schedules[new_name] = self.schedules[name]
             del self.schedules[name]
+            self.schedules[new_name].name = new_name
 
-            self.root.joinpath("schedules", f"{name}.json").unlink(missing_ok=True)
+            p = self.root.joinpath("schedules", f"{name}.json")
+            if p.exists():
+                p.unlink()
             name = new_name
 
         schedule = self.schedules[name]
@@ -258,22 +265,25 @@ class Scheduler(hass.Hass):
 
         self.store_schedule(schedule)
         self.set_own_state()
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(schedule), 200
 
     def remove_schedule(self, request: Dict):
         name = request["name"]
-        if name not in self.groups:
+        if name not in self.schedules:
             return f"Schedule not found: {name}", 403
 
         del self.schedules[name]
-        self.root.joinpath("schedules", f"{name}.json").unlink(missing_ok=True)
+        p = self.root.joinpath("schedules", f"{name}.json")
+        if p.exists():
+            p.unlink()
 
         self.set_own_state()
+        return {"msg": f"Schedule {name} removed"}, 200
 
     def add_entry(self, request: Dict):
         schedulename = request["schedule"]
 
-        if schedulename not in self.groups:
+        if schedulename not in self.schedules:
             return f"Schedule not found: {schedulename}", 403
         schedule = self.schedules[schedulename]
 
@@ -283,21 +293,24 @@ class Scheduler(hass.Hass):
         days = request.get("days", "daily")
         attrs = request.get("attrs", {})
 
-        entry = Entry(value, hour, minute, days, attrs)
+        is_service = request.get("is_service", False)
+        entity_identifier = request.get("entity_identifier", "entity_id")
+
+        entry = Entry(value, hour, minute, days, attrs, is_service, entity_identifier)
 
         try:
             schedule.add_entry(entry)
-        except ValueError:
-            return "Entry collides with existing entry", 403
+        except ValueError as e:
+            return {"msg": str(e)}, 403
 
         self.store_schedule(schedule)
         self.set_own_state()
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(schedule), 200
 
     def edit_entry(self, request: Dict):
         schedulename = request["schedule"]
 
-        if schedulename not in self.groups:
+        if schedulename not in self.schedules:
             return f"Schedule not found: {schedulename}", 403
         schedule = self.schedules[schedulename]
 
@@ -313,8 +326,20 @@ class Scheduler(hass.Hass):
         new_days = request.get("new_days", entry.days)
         new_value = request.get("new_value", entry.value)
         new_attrs = request.get("new_attrs", entry.attrs)
+        new_is_service = request.get("new_is_service", entry.is_service)
+        new_entity_identifier = request.get(
+            "new_entity_identifier", entry.entity_identifier
+        )
 
-        new_entry = Entry(new_value, new_hour, new_minute, new_days, new_attrs)
+        new_entry = Entry(
+            new_value,
+            new_hour,
+            new_minute,
+            new_days,
+            new_attrs,
+            new_is_service,
+            new_entity_identifier,
+        )
 
         schedule.entries.remove(entry)
         schedule.add_entry(new_entry)
@@ -322,12 +347,12 @@ class Scheduler(hass.Hass):
         self.store_schedule(schedule)
         self.set_own_state()
 
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(schedule), 200
 
     def remove_entry(self, request: Dict):
         schedulename = request["schedule"]
 
-        if schedulename not in self.groups:
+        if schedulename not in self.schedules:
             return f"Schedule not found: {schedulename}", 403
         schedule = self.schedules[schedulename]
 
@@ -344,4 +369,4 @@ class Scheduler(hass.Hass):
         self.store_schedule(schedule)
         self.set_own_state()
 
-        return "", 200
+        return ScheduleWriter.schedule_to_dict(schedule), 200

@@ -62,6 +62,25 @@ class EntityGroup:
             entity: The entity id to set
             entry: The entry to get the new state from
         """
+        if entry.is_service:
+            self.schedule.scheduler.call_service(
+                entry.value,
+                **entry.additional_attrs,
+                **{entry.entity_identifier: entity},
+            )
+
+        elif isinstance(entry.value, str):
+            val = entry.value.lower()
+            if val == "on":
+                self.schedule.scheduler.turn_on(entity, **entry.additional_attrs)
+                return
+            elif val == "off":
+                self.schedule.scheduler.turn_off(entity, **entry.additional_attrs)
+                return
+            elif val == "toggle":
+                self.schedule.scheduler.toggle(entity, **entry.additional_attrs)
+                return
+
         self.schedule.scheduler.set_state(
             entity, state=entry.value, attributes=entry.additional_attrs
         )

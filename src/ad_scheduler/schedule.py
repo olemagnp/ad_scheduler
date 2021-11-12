@@ -1,13 +1,14 @@
 from typing import Any, Dict, List, Optional, Union
 
 import datetime
-import json
 
 from .const import EntityKind, Days
 
+dt_getter = None
+
 
 def dt_now() -> datetime.datetime:
-    return datetime.datetime.now()
+    return datetime.datetime.now() if dt_getter is None else dt_getter.get_now()
 
 
 class Entry:
@@ -35,14 +36,19 @@ class Entry:
         minute=0,
         days="daily",
         additional_attrs: Optional[Any] = None,
+        is_service: bool = False,
+        entity_identifier: str = "entity_id",
     ):
         """Sets the fields of the entry, as well as validating the given days"""
         self.value = value
-        self.additional_attrs = additional_attrs
+        self.additional_attrs = additional_attrs if additional_attrs is not None else {}
 
         self.hour = hour
         self.minute = minute
         self.time = datetime.time(hour=hour, minute=minute)
+        self.is_service = is_service
+        self.entity_identifier = entity_identifier
+
         if days == "daily":
             self.days = list(map(lambda d: Days.to_int(d), Days.__all__))
         else:
@@ -170,7 +176,8 @@ class Schedule:
     def cancel(self):
         """Cancel the current trigger if it is set"""
         if self.next_trigger is not None:
-            self.scheduler.cancel_timer(self.next_trigger)
+            if self.scheduler.timer_running(self.next_trigger):
+                self.scheduler.cancel_timer(self.next_trigger)
             self.next_trigger = None
 
     def get_entry(self, hour, minute, days):
