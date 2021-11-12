@@ -228,6 +228,6 @@ class Schedule:
 
     def trigger(self, kwargs):
         """Trigger callback"""
-        logger.debug("Schedule triggered!")
+        logger.info("Schedule triggered!")
         self.update_state()
         self.set_subscribers(self.current_entry)
