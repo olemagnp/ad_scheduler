@@ -36,6 +36,8 @@ class Entry:
         minute=0,
         days="daily",
         additional_attrs: Optional[Any] = None,
+        is_service: bool = False,
+        entity_identifier: str = "entity_id",
     ):
         """Sets the fields of the entry, as well as validating the given days"""
         self.value = value
@@ -44,6 +46,9 @@ class Entry:
         self.hour = hour
         self.minute = minute
         self.time = datetime.time(hour=hour, minute=minute)
+        self.is_service = is_service
+        self.entity_identifier = entity_identifier
+
         if days == "daily":
             self.days = list(map(lambda d: Days.to_int(d), Days.__all__))
         else:
@@ -77,7 +82,7 @@ class Entry:
     def same_time(self, other: "Entry"):
         """Check if two entries trigger at the same time"""
         return (
-            self.hour == other.hour
+            self.hour == other.hourcall_service
             and self.minute == other.minute
             and any([d in other.days for d in self.days])
         )
