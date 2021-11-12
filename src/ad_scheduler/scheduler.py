@@ -293,7 +293,10 @@ class Scheduler(hass.Hass):
         days = request.get("days", "daily")
         attrs = request.get("attrs", {})
 
-        entry = Entry(value, hour, minute, days, attrs)
+        is_service = request.get("is_service", False)
+        entity_identifier = request.get("entity_identifier", "entity_id")
+
+        entry = Entry(value, hour, minute, days, attrs, is_service, entity_identifier)
 
         try:
             schedule.add_entry(entry)
@@ -323,8 +326,20 @@ class Scheduler(hass.Hass):
         new_days = request.get("new_days", entry.days)
         new_value = request.get("new_value", entry.value)
         new_attrs = request.get("new_attrs", entry.attrs)
+        new_is_service = request.get("new_is_service", entry.is_service)
+        new_entity_identifier = request.get(
+            "new_entity_identifier", entry.entity_identifier
+        )
 
-        new_entry = Entry(new_value, new_hour, new_minute, new_days, new_attrs)
+        new_entry = Entry(
+            new_value,
+            new_hour,
+            new_minute,
+            new_days,
+            new_attrs,
+            new_is_service,
+            new_entity_identifier,
+        )
 
         schedule.entries.remove(entry)
         schedule.add_entry(new_entry)
