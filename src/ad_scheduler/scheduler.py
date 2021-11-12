@@ -30,6 +30,7 @@ class Scheduler(hass.Hass):
                         raise ValueError(
                             f"Schedule with duplicate name found: {sched.name}"
                         )
+                    sched.subscribers.append(self)
                     self.schedules[sched.name] = sched
         else:
             schedule_dir.mkdir()
